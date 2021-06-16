@@ -15,7 +15,8 @@ import static org.apache.spark.sql.functions.*;
 import org.apache.spark.ml.Pipeline;
 import org.apache.spark.ml.PipelineModel;
 import org.apache.spark.ml.PipelineStage;
-import org.apache.spark.ml.classification.LogisticRegression;
+import org.apache.spark.ml.classification.DecisionTreeClassifier;
+import org.apache.spark.ml.classification.DecisionTreeClassificationModel;
 import org.apache.spark.ml.evaluation.MulticlassClassificationEvaluator;
 import org.apache.spark.ml.feature.HashingTF;
 import org.apache.spark.ml.feature.Tokenizer;
@@ -63,9 +64,9 @@ public class WordCount {
   
         HashingTF hashingTF = new HashingTF().setNumFeatures(1000).setInputCol(tokenizer.getOutputCol()).setOutputCol("features");
   
-        LogisticRegression lr = new LogisticRegression().setFeaturesCol("features").setLabelCol("label").setMaxIter(10).setRegParam(0.001);
+        DecisionTreeClassifier dtree = new DecisionTreeClassifier().setFeaturesCol("features").setLabelCol("label");
   
-        Pipeline pipeline = new Pipeline().setStages(new PipelineStage[]{tokenizer, hashingTF, lr});
+        Pipeline pipeline = new Pipeline().setStages(new PipelineStage[]{tokenizer, hashingTF, dtree});
 
         // запускаем обучение
         PipelineModel model = pipeline.fit(dtrain);
@@ -89,7 +90,7 @@ public class WordCount {
         final double eaccuracy = evaluator.evaluate(dp);
 
         // показываем результаты
-       System.out.println(" Logistic Regression ");
+       System.out.println(" Decision Tree Classifier ");
        System.out.printf(" Right prediction: %d%n Wrong prediction: %d%n Model accuracy: %.4f%n Accuracy evaluation: %.4f%n",results.get(true), results.get(false), accuracy, eaccuracy);
 
         // завершаем работу
