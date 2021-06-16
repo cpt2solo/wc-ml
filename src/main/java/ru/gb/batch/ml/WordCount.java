@@ -19,6 +19,7 @@ import org.apache.spark.ml.classification.LogisticRegression;
 import org.apache.spark.ml.evaluation.MulticlassClassificationEvaluator;
 import org.apache.spark.ml.feature.HashingTF;
 import org.apache.spark.ml.feature.Tokenizer;
+import org.apache.spark.ml.feature.StopWordsRemover;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -59,13 +60,15 @@ public class WordCount {
                                                .withColumn("label", col("label").cast(DataTypes.FloatType));
 
         // готовим конвейер
-        Tokenizer tokenizer = new Tokenizer().setInputCol("text").setOutputCol("words");
+        Tokenizer tokenizer = new Tokenizer().setInputCol("text").setOutputCol("raw");
+
+        StopWordsRemover cleaner = new StopWordsRemover().setInputCol("raw").setOutputCol("words");
   
-        HashingTF hashingTF = new HashingTF().setNumFeatures(1000).setInputCol(tokenizer.getOutputCol()).setOutputCol("features");
+        HashingTF hashingTF = new HashingTF().setNumFeatures(1000).setInputCol("words").setOutputCol("features");
   
         LogisticRegression lr = new LogisticRegression().setFeaturesCol("features").setLabelCol("label").setMaxIter(10).setRegParam(0.001);
   
-        Pipeline pipeline = new Pipeline().setStages(new PipelineStage[]{tokenizer, hashingTF, lr});
+        Pipeline pipeline = new Pipeline().setStages(new PipelineStage[]{tokenizer, cleaner, hashingTF, lr});
 
         // запускаем обучение
         PipelineModel model = pipeline.fit(dtrain);
